@@ -1,15 +1,44 @@
+import sys
+from os.path import abspath, dirname
 
 import requests
 import re
 import json
 import os
 
-from service.base import register, WebService, export, get_hex_name, with_styles
 
+
+
+import logging
+
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.DEBUG)
+
+# set two handlers
+log_file = "{}.log".format(__file__)
+# rm_file(log_file)
+base_dir = dirname(dirname(abspath(__file__)))
+
+fileHandler = logging.FileHandler(os.path.join(base_dir, log_file), mode = 'w')
+fileHandler.setLevel(logging.DEBUG)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.DEBUG)
+
+# set formatter
+formatter = logging.Formatter('[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+consoleHandler.setFormatter(formatter)
+fileHandler.setFormatter(formatter)
+
+# add
+logger.addHandler(fileHandler)
+logger.addHandler(consoleHandler)
+
+logger.info("test")
+from ..base import *
 
 def wirte_word(worddict,word):#测试代码,写入
     fileword=json.dumps(worddict)
-    _file="E:\\object\\weblio\\json\\Moji_{word}.json".format(word=word)
+    _file="C:\\object\\weblio\\json\\Moji_{word}.json".format(word=word)
     fileObject = open(_file, 'w')
     fileObject.write(fileword)
     fileObject.close()
@@ -24,6 +53,7 @@ def Word_t(word):
         word_text+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=text)
     ret+=word_text+'</div>'
     return ret
+
 
 @register([u'Moji', u'Moji'])#接口名称
 class Moji(WebService):#接口名称
@@ -62,9 +92,11 @@ class Moji(WebService):#接口名称
     def __init__(self):
         super(Moji, self).__init__()#接口名称
     def _get_from_api(self):
+        logger.info(self.word)
         self.data['searchText']=self.word
         r = requests.post(self.target_search, data=json.dumps(self.data), headers=self.hd)  # POST请求
         ans = r.json()['result']
+        logger.info(ans)
         # wirte_word(ans,self.word)
         return self.cache_this(ans)
     @with_styles(cssfile="_moji.css", need_wrap_css=False,wrap_class='mojidict-helper-card-container')
@@ -112,6 +144,3 @@ class Moji(WebService):#接口名称
                 os.remove(audio_name)
         return res
 
-moji_word=Moji('一度')
-print(moji_word.worddict)
-print('\n===========================\n单词完整释义[简]')

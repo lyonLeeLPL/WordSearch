@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup as bs4
 import re
 import json
 
-class Moji(object):
+class Moji_old(object):
     word=None
     # words=None
     wordID=list()
@@ -148,43 +148,49 @@ class Moji(object):
 
     #     # return word
 
-moji_word=Moji('一度')
-print(moji_word.worddict)
-print('\n===========================\n单词完整释义[简]')
-ret='''<div class="mojidict-helper-card"><div class="word-detail-container">'''
-for wID in moji_word.wordID:
-    word=moji_word.mean_simple(wID)
-    ret+='''<div class="word-detail"><span class="detail-title">{pron}</span>{word_Part_of_speech}'''.format(pron=word['pron'],word_Part_of_speech=word['word_Part_of_speech'])
-    i=1
-    mean_all=''
-    for mean in word['word_val']:
-        mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
-        i+=1
-    ret+=mean_all+'</div>'
-ret+='</div>'*2
-print(ret,'\n===========================\n')
-print('\n===========================\n单词TTS')
-for wID in moji_word.wordID:
-    url=moji_word.Get_TTS(wID)
-    print(url)
-print('\n===========================\n')
-print('\n===========================\n单词完整释义[主]')
-for wID in moji_word.wordID:
-    word=moji_word.Get_Word(wID)
-    # print(word)
-    # for word_ in word.values():
-    #     print(word_)
-    ret_word=moji_word.mean_simple(wID)
-    ret+='''<div class="word-detail"><span class="detail-title">\
-        {pron}</span>{word_Part_of_speech}'''.\
-            format(pron=ret_word['pron'],\
-                word_Part_of_speech=ret_word['word_Part_of_speech'])
-    i=1
-    mean_all=''
-    for mean in ret_word['word_val']:
-        mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
-        i+=1
-    ret+=mean_all+'</div>'
-ret+='</div>'*2
-print(moji_word.Get_URL() )
+def get_html_word(moji_word):
+    print(moji_word.worddict)
+    print('\n===========================\n单词完整释义[简]')
+    ret='''<div class="mojidict-helper-card"><div class="word-detail-container">'''
+    for wID in moji_word.wordID:
+        word=moji_word.mean_simple(wID)
+        ret+='''<div class="word-detail"><span class="detail-title">{pron}</span>{word_Part_of_speech}'''.format(pron=word['pron'],word_Part_of_speech=word['word_Part_of_speech'])
+        i=1
+        mean_all=''
+        for mean in word['word_val']:
+            mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
+            i+=1
+        ret+=mean_all+'</div>'
+    ret+='</div>'*2
+    print(ret,'\n===========================\n')
+    print('\n===========================\n单词TTS')
+    for wID in moji_word.wordID:
+        url=moji_word.Get_TTS(wID)
+        print(url)
+    print('\n===========================\n')
+    print('\n===========================\n单词完整释义[主]')
+    for wID in moji_word.wordID:
+        word=moji_word.Get_Word(wID)
+        # print(word)
+        # for word_ in word.values():
+        #     print(word_)
+        ret_word=moji_word.mean_simple(wID)
+        ret+='''<div class="word-detail"><span class="detail-title">\
+            {pron}</span>{word_Part_of_speech}'''.\
+                format(pron=ret_word['pron'],\
+                    word_Part_of_speech=ret_word['word_Part_of_speech'])
+        i=1
+        mean_all=''
+        for mean in ret_word['word_val']:
+            mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
+            i+=1
+        ret+=mean_all+'</div>'
+    ret+='</div>'*2
+    print(moji_word.Get_URL() )
+
+moji_word=Moji_old('一度')
+get_html_word(moji_word)
+
+
+### 载入 xlsx
 
