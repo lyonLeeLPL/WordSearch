@@ -1,8 +1,16 @@
+import re
+
+import pandas
 import requests
 from bs4 import BeautifulSoup as bs4
-import re
 import json
 
+from lxml import etree
+from lxml.etree import HTML
+
+from selenium import webdriver
+
+driver = webdriver.PhantomJS(r"C:\soft\phantomjs-2.1.1-windows\bin\phantomjs.exe")
 class Moji_old(object):
     word=None
     # words=None
@@ -35,6 +43,15 @@ class Moji_old(object):
     "_ApplicationId":"E62VyFVLMiW7kvbtVq3p",
     "_ClientVersion":"js2.12.0"
     }
+
+
+    target_fetch_html = 'https://www.mojidict.com/details/'#查询单词详细内容
+    word_data={#单词详细数据
+    "wordId":"",
+    "_ApplicationId":"E62VyFVLMiW7kvbtVq3p",
+    "_ClientVersion":"js2.12.0"
+    }
+
     def Post_Word(self):
         self.data['searchText'] = self.word
         r = requests.post(self.target_search, data=json.dumps(self.data), headers=self.hd)  # POST请求
@@ -54,6 +71,8 @@ class Moji_old(object):
     def __init__(self,word):
         self.word=word
         self.Post_Word()
+        self.get_selenium_html()
+
     def Get_TTS(self,wordID,wordtts=True):#取单词/例句发音
         self.tts_data['tarId']=wordID
         if not wordtts:
@@ -77,6 +96,25 @@ class Moji_old(object):
             'word_val':word_val,
         }
         return result
+
+    def get_selenium_html(self,wordID=None):
+        if wordID == None:
+            wordID = self.wordID[-1]
+        self.word_data['wordId'] = wordID
+        worddict = self.worddict[wordID]
+        target_fetch_html = self.target_fetch_html + wordID
+        driver.get(target_fetch_html)
+        # 获取页面名为 wrapper的id标签的文本内容
+        selenium_htmls = driver.find_elements_by_css_selector(".el-collapse-item")
+        text = ""
+
+        for html in selenium_htmls:
+            text += html.text
+            text += "\n"
+
+        print(text)
+
+        worddict['html_text'] = text
 
     def Get_Word(self,wordID=None):
         if wordID==None:
@@ -148,49 +186,23 @@ class Moji_old(object):
 
     #     # return word
 
-def get_html_word(moji_word):
-    print(moji_word.worddict)
-    print('\n===========================\n单词完整释义[简]')
-    ret='''<div class="mojidict-helper-card"><div class="word-detail-container">'''
-    for wID in moji_word.wordID:
-        word=moji_word.mean_simple(wID)
-        ret+='''<div class="word-detail"><span class="detail-title">{pron}</span>{word_Part_of_speech}'''.format(pron=word['pron'],word_Part_of_speech=word['word_Part_of_speech'])
-        i=1
-        mean_all=''
-        for mean in word['word_val']:
-            mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
-            i+=1
-        ret+=mean_all+'</div>'
-    ret+='</div>'*2
-    print(ret,'\n===========================\n')
-    print('\n===========================\n单词TTS')
-    for wID in moji_word.wordID:
-        url=moji_word.Get_TTS(wID)
-        print(url)
-    print('\n===========================\n')
-    print('\n===========================\n单词完整释义[主]')
-    for wID in moji_word.wordID:
-        word=moji_word.Get_Word(wID)
-        # print(word)
-        # for word_ in word.values():
-        #     print(word_)
-        ret_word=moji_word.mean_simple(wID)
-        ret+='''<div class="word-detail"><span class="detail-title">\
-            {pron}</span>{word_Part_of_speech}'''.\
-                format(pron=ret_word['pron'],\
-                    word_Part_of_speech=ret_word['word_Part_of_speech'])
-        i=1
-        mean_all=''
-        for mean in ret_word['word_val']:
-            mean_all+='<p>{i_count}.{excerpt}</p>'.format(i_count=i,excerpt=mean)
-            i+=1
-        ret+=mean_all+'</div>'
-    ret+='</div>'*2
-    print(moji_word.Get_URL() )
-
-moji_word=Moji_old('一度')
-get_html_word(moji_word)
-
-
 ### 载入 xlsx
+file_path = "C:\\360\\日语N1核心副词300.csv"
+
+result = pandas.read_csv(file_path)
+
+## 循环
+records = result.to_dict("records")
+for record in records:
+    print(record)
+    word = record["日文"]
+    moji_word = Moji_old(word)
+
+
+print(moji_word.worddict.values())
+values = moji_word.worddict.values()
+df = pandas.DataFrame(values)
+
+##df.to_excel(file_path + "2.xlsx")
+
 
