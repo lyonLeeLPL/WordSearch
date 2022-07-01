@@ -109,12 +109,12 @@ class Moji_old(object):
         text = ""
 
         for html in selenium_htmls:
-            text += html.text
+            text += html.get_attribute("outerHTML")
             text += "\n"
 
         print(text)
 
-        worddict['html_text'] = text
+        worddict['outerHTML'] = text
 
     def Get_Word(self,wordID=None):
         if wordID==None:
