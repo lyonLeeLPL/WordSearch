@@ -2,7 +2,7 @@ import re
 
 import pandas
 import requests
-from bs4 import BeautifulSoup as bs4
+from bs4 import BeautifulSoup as bs4, BeautifulSoup
 import json
 
 from lxml import etree
@@ -105,16 +105,37 @@ class Moji_old(object):
         target_fetch_html = self.target_fetch_html + wordID
         driver.get(target_fetch_html)
         # 获取页面名为 wrapper的id标签的文本内容
-        selenium_htmls = driver.find_elements_by_css_selector(".el-collapse-item")
+        selenium_htmls = driver.find_elements_by_xpath("//div[@class=\"el-collapse\" ] ")
         text = ""
 
-        for html in selenium_htmls:
-            text += html.get_attribute("outerHTML")
-            text += "\n"
+        for selenium_html in selenium_htmls:
+            outerHTML = selenium_html.get_attribute("outerHTML")
+            soup = BeautifulSoup(outerHTML, "lxml")
 
+            tar_text = soup.text
+            # 洗う出す
+            index1 = tar_text.find("熟练度")
+            if index1 > -1 :
+                tar_text = tar_text.replace("熟练度","")
+            index = tar_text.find("选择其它文件夹")
+            if index > -1:
+                tar_text=tar_text.replace("选择其它文件夹", "")
+            index = tar_text.find("认识模糊不认识")
+            if index > -1:
+                tar_text = tar_text.replace("认识模糊不认识", "")
+            index = tar_text.find("()")
+            if index > -1:
+                tar_text=tar_text.replace("()", "")
+            index = tar_text.find("。")
+            if index > -1:
+                tar_text=tar_text[:index1] + tar_text[index1:].replace("。", "。\n")
+
+            text += tar_text + "\n"
+            text += "=======================================================================\n"
         print(text)
 
-        worddict['outerHTML'] = text
+        worddict['outerHTML'] = tar_text
+        worddict['url'] = target_fetch_html
 
     def Get_Word(self,wordID=None):
         if wordID==None:
@@ -203,6 +224,6 @@ print(moji_word.worddict.values())
 values = moji_word.worddict.values()
 df = pandas.DataFrame(values)
 
-##df.to_excel(file_path + "2.xlsx")
+df.to_excel(file_path + "2.xlsx")
 
 
